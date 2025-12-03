@@ -42,14 +42,13 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
-            'enablePrettyUrl' => true,
-            'showScriptName' => false,
-            'rules' => [
-            ],
+        'enablePrettyUrl' => true,
+        'showScriptName' => false,
+        'rules' => [
+            ['class' => 'yii\rest\UrlRule', 'controller' => 'api-user', 'pluralize' => true],
         ],
-        */
+],
     ],
     'params' => $params,
 ];
