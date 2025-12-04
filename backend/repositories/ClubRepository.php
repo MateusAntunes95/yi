@@ -11,7 +11,6 @@ class ClubRepository extends BaseRepository
         parent::__construct(new Club());
     }
 
-    // Exemplo usando o novo método
     public function findByName(string $name): ?Club
     {
         return $this->findBy('name', $name);
