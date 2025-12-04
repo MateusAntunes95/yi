@@ -17,7 +17,6 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./nginx:/etc/nginx/conf.d
-
     ports:
       - "8080:80"
     networks:
@@ -31,7 +30,9 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: yii_db
+      MYSQL_DATABASE: yiapi
+      MYSQL_USER: yiiuser
+      MYSQL_PASSWORD: yiipass
     volumes:
       - db_data:/var/lib/mysql
     networks:
