@@ -1,4 +1,5 @@
 <?php
+
 namespace app\commands;
 
 use yii\console\Controller;
@@ -9,30 +10,50 @@ class ClubesCrawlerController extends Controller
 {
     public function actionIndex()
     {
-        $url = 'https://ge.globo.com/futebol/brasileirao-serie-a/'; // ajustar conforme necessário
+        $url = 'https://www.transfermarkt.com/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1/saison_id/2025';
+
         $client = new Client([
-            'timeout' => 10,
+            'timeout' => 20,
             'headers' => [
-                'User-Agent' => 'Mozilla/5.0 (compatible; MeuCrawler/1.0; +http://seusite.com)',
+                'User-Agent' => 'Mozilla/5.0 (compatible; MeuCrawler/1.0)',
             ],
         ]);
-        $response = $client->get($url);
-        $html = (string) $response->getBody();
 
-        $crawler = new Crawler($html);
+        try {
+            $response = $client->get($url);
+            $html = (string) $response->getBody();
 
-        // Exemplo: supondo que o site liste os clubes em elementos <a> com classe .club-link (ajuste conforme o HTML real)
-        $clubes = $crawler->filter('a.club-link')
-            ->each(function (Crawler $node) {
-                return trim($node->text());
+            $crawler = new Crawler($html);
+
+            // seleciona todas as linhas da classificação
+            $rows = $crawler->filter('table.items tbody tr');
+
+            $this->stdout("Linhas encontradas: " . $rows->count() . PHP_EOL);
+
+            $clubes = [];
+
+            $rows->each(function (Crawler $row) use (&$clubes) {
+                $nomeCell = $row->filter('td.hauptlink a');
+
+                if ($nomeCell->count() > 0) {
+                    $clubes[] = trim($nomeCell->eq(0)->text());
+                }
             });
 
-        // Filtra duplicados e limita a 20 clubes
-        $clubes = array_unique($clubes);
-        $clubes = array_slice($clubes, 0, 20);
+            // mantém apenas os 20 primeiros clubes
+            $clubes = array_slice($clubes, 0, 20);
 
-        foreach ($clubes as $clube) {
-            echo $clube . "\n";
+            if (empty($clubes)) {
+                $this->stderr("Nenhum clube encontrado no HTML final." . PHP_EOL);
+                return;
+            }
+
+            foreach ($clubes as $i => $clube) {
+                $this->stdout(($i + 1) . ". " . $clube . PHP_EOL);
+            }
+
+        } catch (\Throwable $e) {
+            $this->stderr("Erro ao acessar $url: " . $e->getMessage() . PHP_EOL);
         }
     }
 }
