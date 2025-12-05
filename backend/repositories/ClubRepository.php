@@ -1,6 +1,6 @@
 <?php
 
-namespace repositories;
+namespace app\repositories;
 
 use app\models\Club;
 
