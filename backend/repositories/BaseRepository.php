@@ -1,6 +1,6 @@
 <?php
 
-namespace repositories;
+namespace app\repositories;
 
 use yii\db\ActiveRecord;
 
