@@ -1,9 +1,9 @@
 <?php
 
-namespace services;
+namespace app\services;
 
-use repositories\ClubRepository;
-use services\crawlers\ClubCrawler;
+use app\repositories\ClubRepository;
+use app\services\crawlers\ClubCrawler;
 
 class ClubService
 {
@@ -14,34 +14,42 @@ class ClubService
         $this->repository = new ClubRepository();
     }
     
-    public function importFromCrawler(): array
-    {
-        $crawler = new ClubCrawler();
-        $names = $crawler->fetchClubs();
-        $results = [];
+   public function importFromCrawler(): array
+{
+    $crawler = new ClubCrawler();
+    $clubs = $crawler->fetchClubs(); // agora retorna array de Club models
+    $results = [];
 
-        foreach ($names as $name) {
+    foreach ($clubs as $clubModel) {
 
-            $exists = $this->repository->findBy('name', $name);
+        // Verifica se já existe no banco pelo nome
+        $exists = $this->repository->findBy('name', $clubModel->name);
 
-            if ($exists) {
-                $results[] = [
-                    'name' => $name,
-                    'status' => 'already_exists'
-                ];
-                continue;
-            }
-
-            $club = $this->repository->save($name);
-
+        if ($exists) {
             $results[] = [
-                'name' => $name,
-                'status' => $club ? 'created' : 'failed'
+                'name' => $clubModel->name,
+                'status' => 'already_exists'
             ];
+            continue;
         }
 
-        return $results;
+        // Salva o modelo Club
+        $saved = false;
+        try {
+            $saved = $this->repository->save($clubModel); // agora recebe ActiveRecord
+        } catch (\Throwable $e) {
+            \Yii::error("Erro ao salvar clube {$clubModel->name}: " . $e->getMessage(), __METHOD__);
+        }
+
+        $results[] = [
+            'name' => $clubModel->name,
+            'status' => $saved ? 'created' : 'failed'
+        ];
     }
+
+    return $results;
+}
+    
 
     public function list(?string $name): array
     {
