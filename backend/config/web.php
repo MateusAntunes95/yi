@@ -12,9 +12,11 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
-        'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
+       'request' => [
             'cookieValidationKey' => 'o6orU7N6qhp2Hs8uEynbhs8PGSCSSuQh',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -43,10 +45,11 @@ $config = [
         ],
         'db' => $db,
         'urlManager' => [
-        'enablePrettyUrl' => true,
-        'showScriptName' => false,
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'enableStrictParsing' => false,
         'rules' => [
-            ['class' => 'yii\rest\UrlRule', 'controller' => 'api-user', 'pluralize' => true],
+              ['class' => 'yii\rest\UrlRule', 'controller' => 'club', 'pluralize' => false],
         ],
 ],
     ],
