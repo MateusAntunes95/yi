@@ -12,10 +12,10 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
-       'request' => [
+        'request' => [
             'cookieValidationKey' => 'o6orU7N6qhp2Hs8uEynbhs8PGSCSSuQh',
             'parsers' => [
-                'application/json' => 'yii\web\JsonParser',
+                'application/json' => 'yii\web\JsonParser', // para aceitar JSON
             ],
         ],
         'cache' => [
@@ -23,7 +23,8 @@ $config = [
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'enableAutoLogin' => false, // geralmente em API se usa token, não cookie
+            'enableSession' => false,   // desabilita sessão para API
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -31,7 +32,6 @@ $config = [
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/mail',
-            // send all mails to a file by default.
             'useFileTransport' => true,
         ],
         'log' => [
@@ -48,28 +48,33 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'enableStrictParsing' => false,
-        'rules' => [
-              ['class' => 'yii\rest\UrlRule', 'controller' => 'club', 'pluralize' => false],
+            'rules' => [
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'club', 'pluralize' => false],
+            ],
         ],
-],
+        // Configuração de CORS para React
+        'response' => [
+            'class' => 'yii\web\Response',
+            'on beforeSend' => function ($event) {
+                $response = $event->sender;
+                $response->headers->set('Access-Control-Allow-Origin', '*'); // ou domain específico
+                $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+                $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            },
+        ],
     ],
     'params' => $params,
 ];
 
 if (YII_ENV_DEV) {
-    // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 }
 
