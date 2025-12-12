@@ -2,25 +2,20 @@
 
 namespace app\services\crawlers;
 
-use GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
+use app\dto\ClubDetailDto;
+use app\enums\ClubEnum;
 
-class ClubCrawler
+class ClubCrawler extends CrawlerBase
 {
     public function fetchClubs(): array
-{
-    $url = 'https://www.transfermarkt.com/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1/saison_id/2025';
+    {
+        $url = 'https://www.transfermarkt.com/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1/saison_id/2025';
 
-    $client = new Client([
-        'timeout' => 20,
-        'headers' => ['User-Agent' => 'Mozilla/5.0'],
-    ]);
-
-    try {
-        $response = $client->get($url);
-        $html = (string) $response->getBody();
-
-        $crawler = new Crawler($html);
+        $crawler = $this->fetchCrawler($url);
+        if (!$crawler) {
+            return [];
+        }
 
         $clubs = [];
         $rows = $crawler->filter('table.items tbody tr');
@@ -30,20 +25,35 @@ class ClubCrawler
             if ($nameCell->count() > 0) {
                 $name = trim($nameCell->eq(0)->text());
 
-                // Criar modelo Club
                 $clubModel = new \app\models\Club();
                 $clubModel->name = $name;
-
                 $clubs[] = $clubModel;
             }
         });
 
-        // Retorna no máximo 20 clubes
         return array_slice($clubs, 0, 20);
-    } catch (\Throwable $e) {
-        \Yii::error($e->getMessage(), __METHOD__);
-        return [];
     }
-}
 
+    public function fetchClubDetail(ClubEnum $clubEnum): ?ClubDetailDto
+    {
+        $slug = $clubEnum->value;
+        $url = "https://pt.wikipedia.org/wiki/{$slug}";
+
+        $crawler = $this->fetchCrawler($url);
+        if (!$crawler) {
+            return null;
+        }
+
+        $dto = new ClubDetailDto();
+
+        $dto->name       = $this->extractText($crawler, 'tbody tr:contains("Nome") td');
+        $dto->nickname   = $this->extractMultiple($crawler, 'tbody tr:contains("Alcunhas") td br');
+        $dto->mascot     = $this->extractMultiple($crawler, 'tbody tr:contains("Mascote") td br');
+        $dto->founded    = $this->extractText($crawler, 'tbody tr:contains("Fundação") td');
+        $dto->stadium    = $this->extractText($crawler, 'tbody tr:contains("Estádio") td a');
+        $dto->capacity   = $this->extractText($crawler, 'tbody tr:contains("Capacidade") td');
+        $dto->location   = $this->extractText($crawler, 'tbody tr:contains("Localização") td');
+
+        return $dto;
+    }
 }
