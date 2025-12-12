@@ -8,20 +8,9 @@ services:
       - app
     depends_on:
       - db
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: react-frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    stdin_open: true
-    tty: true
-    networks:
-      - app
+    # Faz o container reconhecer o host como host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   nginx:
     image: nginx:latest
@@ -43,10 +32,15 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: yii_db
+      MYSQL_USER: yiiuser
+      MYSQL_PASSWORD: yiipass
     volumes:
       - db_data:/var/lib/mysql
     networks:
       - app
+    ports:
+    - "3306:3306"
+
 
 networks:
   app:
