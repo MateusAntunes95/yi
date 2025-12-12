@@ -1,25 +1,32 @@
+# Base PHP FPM
 FROM php:8.2-fpm
 
-# Instalar dependências do sistema para extensões do PHP
+# Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     git unzip libpng-dev libonig-dev libxml2-dev libicu-dev libzip-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensões do PHP necessárias para Yii
+# Instalar extensões PHP necessárias para Yii2
 RUN docker-php-ext-install pdo pdo_mysql mbstring xml intl zip gd
 
+# Instalar Xdebug
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
-# Instalar composer
+# Copiar configuração do Xdebug
+COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+# Instalar Composer
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
+# Definir diretório de trabalho
 WORKDIR /var/www/html/backend
 
-# Instalar guzzle pelo composer durante o build
-# OBS: Só vai instalar realmente se o composer.json existir no contexto
-RUN composer require guzzlehttp/guzzle:^7.4 symfony/dom-crawler:^6.4 --no-interaction
+# Copiar o composer.json da raiz
+COPY composer.json composer.lock ./
 
+# Instalar dependências
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Tornar acessível para webserver
-EXPOSE 9000
-
-CMD ["php-fpm"]
+# Copiar todo o backend (incluindo yi/)
+COPY backend/ ./
