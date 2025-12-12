@@ -49,6 +49,7 @@ $config = [
             'showScriptName' => false,
             'enableStrictParsing' => false,
             'rules' => [
+                'club/detail/<slug:[\w-]+>' => 'club/detail',
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'club', 'pluralize' => false],
             ],
         ],
