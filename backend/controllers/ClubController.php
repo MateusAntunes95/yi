@@ -1,13 +1,22 @@
 <?php
+
 namespace app\controllers;
 
 use app\services\ClubService;
+use app\enums\ClubEnum;
 use yii\rest\Controller;
 use yii\web\Response;
 
 class ClubController extends Controller
 {
+    private ClubService $service;
     public $enableCsrfValidation = false;
+
+    public function __construct($id, $module, ClubService $service, $config = [])
+    {
+        $this->service = $service;
+        parent::__construct($id, $module, $config);
+    }
 
     public function actionList()
     {
@@ -15,8 +24,7 @@ class ClubController extends Controller
 
         $name = \Yii::$app->request->get('name');
 
-        $service = new ClubService();
-        $clubs = $service->list($name);
+        $clubs = $this->service->list($name);
 
         return [
             'success' => true,
@@ -29,24 +37,42 @@ class ClubController extends Controller
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 
-    try {
-        $service = new ClubService();
-        $results = $service->importFromCrawler();
+        try {
+            $results = $this->service->importFromCrawler();
 
-        return [
-            'success' => true,
-            'imported' => $results
-        ];
-    } catch (\Throwable $e) {
-        // Loga o erro no Yii
-        \Yii::error($e->getMessage(), __METHOD__);
-
-        // Retorna mensagem de erro para o cliente
-        return [
-            'success' => false,
-            'error' => 'Ocorreu um erro ao importar os clubes.',
-            'details' => $e->getMessage(), // opcional, pode remover em produção
-        ];
+            return [
+                'success' => true,
+                'imported' => $results
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
     }
+
+    public function actionDetail(string $slug)
+    {
+        \Yii::$app->response->format = Response::FORMAT_JSON;
+
+        try {
+            if (!defined("app\\enums\\ClubEnum::$slug")) {
+                throw new \RuntimeException("Enum inválido: {$slug}");
+            }
+
+            $enum = constant("app\\enums\\ClubEnum::$slug");
+            $results = $this->service->getDetail($enum);
+
+            return [
+                'success' => true,
+                'detail' => $results
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 }
