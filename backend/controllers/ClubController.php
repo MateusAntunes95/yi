@@ -28,7 +28,7 @@ class ClubController extends Controller
     /**
      * @return array
      */
-    public function actionList()
+    public function actionIndex()
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 
