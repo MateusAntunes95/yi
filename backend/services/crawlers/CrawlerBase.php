@@ -9,6 +9,9 @@ abstract class CrawlerBase
 {
     protected Client $client;
 
+    /**
+     * @return void
+     */
     public function __construct()
     {
         $this->client = new Client([
@@ -19,6 +22,10 @@ abstract class CrawlerBase
         ]);
     }
 
+    /**
+     * @param string $url
+     * @return Crawler|null
+     */
     protected function fetchCrawler(string $url): ?Crawler
     {
         try {
@@ -31,12 +38,22 @@ abstract class CrawlerBase
         }
     }
 
+    /**
+     * @param Crawler $crawler
+     * @param string $selector
+     * @return string
+     */
     protected function extractText(Crawler $crawler, string $selector): string
     {
         $node = $crawler->filter($selector);
         return $node->count() > 0 ? trim($node->first()->text()) : '';
     }
 
+    /**
+     * @param Crawler $crawler
+     * @param string $selector
+     * @return array
+     */
     protected function extractMultiple(Crawler $crawler, string $selector): array
     {
         return $crawler->filter($selector)->each(fn($n) => trim($n->text()));

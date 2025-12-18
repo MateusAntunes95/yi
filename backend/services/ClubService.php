@@ -13,12 +13,18 @@ class ClubService
     private ClubRepository $repository;
     private ClubCrawler $clubCrawler;
 
+    /**
+     * @return void
+     */
     public function __construct()
     {
         $this->repository  = new ClubRepository();
         $this->clubCrawler = new ClubCrawler();
     }
 
+    /**
+     * @return array
+     */
     public function importFromCrawler(): array
     {
         $clubs = $this->clubCrawler->fetchClubs();
@@ -55,6 +61,10 @@ class ClubService
         return $results;
     }
 
+    /**
+     * @param string|null $name
+     * @return array
+     */
     public function list(?string $name): array
     {
         if (!empty($name)) {
@@ -65,21 +75,22 @@ class ClubService
         return $this->repository->findAll();
     }
 
+    /**
+     * @param ClubEnum $clubEnum
+     * @return ClubDetailDto
+     */
     public function getDetail(ClubEnum $clubEnum): ClubDetailDto
     {
-        // Localiza pelo nome do enum (ex: FLAMENGO, PALMEIRAS etc.)
         $club = $this->repository->findByName($clubEnum->name);
         if (!$club) {
             throw new RuntimeException("Clube não encontrado no banco: {$clubEnum->name}");
         }
 
-        // Crawler obtém detalhes usando o value do enum (slug da Wiki)
         $detailDto = $this->clubCrawler->fetchClubDetail($clubEnum);
         if (!$detailDto) {
             throw new RuntimeException("Crawler não conseguiu obter detalhes do clube: {$clubEnum->name}");
         }
 
-        // Salva no banco como JSON
         $club->detail = json_encode($detailDto);
 
         if (!$club->save()) {

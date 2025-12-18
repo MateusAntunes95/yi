@@ -5,12 +5,16 @@ namespace app\services\crawlers;
 use Symfony\Component\DomCrawler\Crawler;
 use app\dto\ClubDetailDto;
 use app\enums\ClubEnum;
+use Yii;
 
 class ClubCrawler extends CrawlerBase
 {
+    /**
+     * @return array
+     */
     public function fetchClubs(): array
     {
-        $url = 'https://www.transfermarkt.com/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1/saison_id/2025';
+        $url = Yii::$app->params['crawler']['transfermarkt']['serie_a_2025'];
 
         $crawler = $this->fetchCrawler($url);
         if (!$crawler) {
@@ -34,10 +38,14 @@ class ClubCrawler extends CrawlerBase
         return array_slice($clubs, 0, 20);
     }
 
+    /**
+     * @param ClubEnum $clubEnum
+     * @return ClubDetailDto|null
+     */
     public function fetchClubDetail(ClubEnum $clubEnum): ?ClubDetailDto
     {
-        $slug = $clubEnum->value;
-        $url = "https://pt.wikipedia.org/wiki/{$slug}";
+        $urlTemplate = Yii::$app->params['crawler']['wikipedia']['club_detail'];
+        $url = str_replace('{slug}', $clubEnum->value, $urlTemplate);
 
         $crawler = $this->fetchCrawler($url);
         if (!$crawler) {

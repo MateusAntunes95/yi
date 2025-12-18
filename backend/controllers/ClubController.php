@@ -12,12 +12,22 @@ class ClubController extends Controller
     private ClubService $service;
     public $enableCsrfValidation = false;
 
+    /**
+     * @param string $id
+     * @param \yii\base\Module $module
+     * @param ClubService $service
+     * @param array $config
+     * @return void
+     */
     public function __construct($id, $module, ClubService $service, $config = [])
     {
         $this->service = $service;
         parent::__construct($id, $module, $config);
     }
 
+    /**
+     * @return array
+     */
     public function actionList()
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
@@ -33,6 +43,9 @@ class ClubController extends Controller
         ];
     }
 
+    /**
+     * @return array
+     */
     public function actionCreate()
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
@@ -52,6 +65,10 @@ class ClubController extends Controller
         }
     }
 
+    /**
+     * @param string $slug
+     * @return array
+     */
     public function actionDetail(string $slug)
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
