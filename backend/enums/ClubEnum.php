@@ -24,4 +24,14 @@ enum ClubEnum: string
     case Fortaleza      = 'Fortaleza_Esporte_Clube';
     case Juventude      = 'Esporte_Clube_Juventude';
     case Sport_Recife   = 'Sport_Club_Recife';
+
+     public static function fromName(string $name): ?self
+    {
+        foreach (self::cases() as $case) {
+            if (strcasecmp($case->name, str_replace([' ', '-', '.'], '_', $name)) === 0) {
+                return $case;
+            }
+        }
+        return null;
+    }
 }
