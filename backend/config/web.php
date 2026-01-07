@@ -62,7 +62,7 @@ $config = [
                 '<controller:\w+>/<action:\w+>' => 'options',
 
                 // --- Club ---
-                'club/detail/<slug:[\w-]+>' => 'club/detail',
+                'club/detail/<slug:[\w-]+>/<field:[\w-]+>' => 'club/detail',
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'club', 'pluralize' => false],
 
                 // --- Generic Crawler ---
