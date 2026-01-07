@@ -32,15 +32,7 @@ class ClubController extends Controller
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $name = \Yii::$app->request->get('name');
-
-        $clubs = $this->service->list($name);
-
-        return [
-            'success' => true,
-            'total' => count($clubs),
-            'data' => $clubs
-        ];
+        return $this->service->list(null);
     }
 
     /**
@@ -67,23 +59,17 @@ class ClubController extends Controller
 
     /**
      * @param string $slug
+     * @param string $field
      * @return array
      */
-    public function actionDetail(string $slug)
+    public function actionDetail($slug, $field)
     {
-        \Yii::$app->response->format = Response::FORMAT_JSON;
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         try {
-            if (!defined("app\\enums\\ClubEnum::$slug")) {
-                throw new \RuntimeException("Enum inválido: {$slug}");
-            }
-
-            $enum = constant("app\\enums\\ClubEnum::$slug");
-            $results = $this->service->getDetail($enum);
-
             return [
                 'success' => true,
-                'detail' => $results
+                'value' => $this->service->getClubField($slug, $field),
             ];
         } catch (\Throwable $e) {
             return [
