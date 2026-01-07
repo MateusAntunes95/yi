@@ -8,9 +8,8 @@ use app\repositories\ClubRepository;
 use app\services\crawlers\ClubCrawler;
 use RuntimeException;
 
-class ClubService 
+class ClubService extends BaseService
 {
-    private ClubRepository $repository;
     private ClubCrawler $clubCrawler;
 
     /**
@@ -18,7 +17,7 @@ class ClubService
      */
     public function __construct()
     {
-        $this->repository  = new ClubRepository();
+        parent::__construct(new ClubRepository());
         $this->clubCrawler = new ClubCrawler();
     }
 
@@ -69,35 +68,54 @@ class ClubService
     {
         if (!empty($name)) {
             $club = $this->repository->findBy('name', $name);
-            return $club ? [$club] : [];
+            return [
+                'success' => true,
+                'header' => [],
+                'clubs' => $club ? [$club] : [],
+            ];
         }
 
-        return $this->repository->findAll();
+        $fields = ['name', 'founded', 'stadium'];
+
+        $header = $this->makeHeader($fields);
+
+        $clubs = $this->repository->findAll(['name']);
+
+        return [
+            'success' => true,
+            'header' => $header,
+            'clubs' => $clubs,
+        ];
     }
 
     /**
      * @param ClubEnum $clubEnum
      * @return ClubDetailDto
      */
-    public function getDetail(ClubEnum $clubEnum): ClubDetailDto
+    public function getClubField(string $slug, string $field): array
     {
-        $club = $this->repository->findByName($clubEnum->name);
+        $club = $this->repository->findByName($slug);
         if (!$club) {
-            throw new RuntimeException("Clube não encontrado no banco: {$clubEnum->name}");
+            throw new RuntimeException("Clube não encontrado: {$slug}");
         }
 
-        $detailDto = $this->clubCrawler->fetchClubDetail($clubEnum);
-        if (!$detailDto) {
-            throw new RuntimeException("Crawler não conseguiu obter detalhes do clube: {$clubEnum->name}");
+        $detail = json_decode($club->detail ?? '{}', true) ?? [];
+
+        if (!empty($detail[$field])) {
+            return (array) $detail[$field];
         }
 
-        $club->detail = json_encode($detailDto);
+        $enum = constant("app\\enums\\ClubEnum::{$slug}");
+        $dto = $this->clubCrawler->fetchClubDetail($enum);
 
-        if (!$club->save()) {
-            $errors = json_encode($club->errors);
-            throw new RuntimeException("Erro ao salvar detalhes do clube: {$errors}");
-        }
+        $detail = $dto->toArray();
 
-        return $detailDto;
+        $club->detail = json_encode(
+            $detail,
+            JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+        );
+        $club->save(false);
+
+        return (array) ($detail[$field] ?? '?');
     }
 }
