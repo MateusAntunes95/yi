@@ -18,11 +18,14 @@ abstract class BaseRepository
         return $this->model::findOne($id);
     }
 
-    public function findAll(): array
+   public function findAll(array $fields = []): array
     {
-        return $this->model::find()->all();
+        $query = $this->model::find();
+        if (!empty($fields)) {
+            $query->select($fields);
+        }
+        return $query->all();
     }
-
     public function save(ActiveRecord $model): bool
     {
         return $model->save();
