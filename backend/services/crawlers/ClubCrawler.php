@@ -54,13 +54,16 @@ class ClubCrawler extends CrawlerBase
 
         $dto = new ClubDetailDto();
 
-        $dto->name       = $this->extractText($crawler, 'tbody tr:contains("Nome") td');
-        $dto->nickname   = $this->extractMultiple($crawler, 'tbody tr:contains("Alcunhas") td br');
-        $dto->mascot     = $this->extractMultiple($crawler, 'tbody tr:contains("Mascote") td br');
-        $dto->founded    = $this->extractText($crawler, 'tbody tr:contains("Fundação") td');
-        $dto->stadium    = $this->extractText($crawler, 'tbody tr:contains("Estádio") td a');
-        $dto->capacity   = $this->extractText($crawler, 'tbody tr:contains("Capacidade") td');
-        $dto->location   = $this->extractText($crawler, 'tbody tr:contains("Localização") td');
+        $dto->name = $this->extractText($crawler, 'tbody tr:contains("Nome") td:nth-child(2)');
+        $dto->nickname = $this->extractMultiple($crawler, 'tbody tr:contains("Alcunhas") td:nth-child(2) br');
+        $dto->mascot = $this->extractMultiple($crawler, 'tbody tr:contains("Mascote") td:nth-child(2) br');
+
+        $founded = $this->extractText($crawler, 'tbody tr:contains("Fundação") td:nth-child(2)');
+        $dto->founded = trim(explode(';', $founded)[0]);
+
+        $dto->stadium = $this->extractText($crawler, 'tbody tr:contains("Estádio") td:nth-child(2) a');
+        $dto->capacity = $this->extractText($crawler, 'tbody tr:contains("Capacidade") td:nth-child(2)');
+        $dto->location = $this->extractText($crawler, 'tbody tr:contains("Localização") td:nth-child(2)');
 
         return $dto;
     }
